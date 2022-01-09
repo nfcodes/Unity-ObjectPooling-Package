@@ -1,0 +1,10 @@
+{
+    "name": "com.nfcodes.object-pooling",
+    "version": "1.0.0",
+    "displayName": "Object Pooling package for Unity",
+    "license": "See LICENSE.md file",
+    "author": {
+        "name": "nfcodes",
+        "url": "https://github.com/nfcodes"
+    }
+}
