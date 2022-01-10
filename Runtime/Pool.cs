@@ -1,11 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace NF.ObjectPooling.Runtime
 {
     public sealed class Pool
     {
+        private const int INITIAL_INSTANCES_SIZE = 128;
+        private readonly Action<GameObject, Pool> _onInstanceCreated;
+        
         private readonly Stack<GameObject> _instances;
         private readonly GameObject _prefab;
         private readonly Transform _poolParent;
@@ -13,12 +18,13 @@ namespace NF.ObjectPooling.Runtime
         private readonly Quaternion _initialRotation = default;
         private readonly Vector3 _initialScale = default;
 
-        public Pool(GameObject prefab, Transform poolParent)
+        public Pool(GameObject prefab, Transform poolParent, Action<GameObject, Pool> onInstanceCreated)
         {
-            _instances = new Stack<GameObject>(PoolManager.INITIAL_POOL_SIZE);
+            _instances = new Stack<GameObject>(INITIAL_INSTANCES_SIZE);
             
             _prefab = prefab;
             _poolParent = poolParent;
+            _onInstanceCreated = onInstanceCreated;
             _initialPosition = prefab.transform.position;
             _initialRotation = prefab.transform.rotation;
             _initialScale = prefab.transform.localScale;
@@ -37,6 +43,7 @@ namespace NF.ObjectPooling.Runtime
         private GameObject PopulatePrefab()
         {
             GameObject instance = Object.Instantiate(_prefab);
+            _onInstanceCreated(instance, this);
             instance.SetActive(false);
             return instance;
         }

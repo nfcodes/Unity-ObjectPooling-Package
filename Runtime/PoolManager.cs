@@ -1,32 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace NF.ObjectPooling.Runtime
 {
     public static class PoolManager
     {
-        public const int INITIAL_POOL_SIZE = 64;
-
-        private static readonly Dictionary<Type, Pool> Pools = new Dictionary<Type, Pool>(INITIAL_POOL_SIZE);
+        private const int INITIAL_PREFAB_POOL_SIZE = 128;
+        private const int INITIAL_INSTANCE_POOL_SIZE = 512;
+    
+        private static readonly Dictionary<GameObject, Pool> PrefabPools = new Dictionary<GameObject, Pool>(INITIAL_PREFAB_POOL_SIZE);
+        private static readonly Dictionary<GameObject, Pool> InstancesPools = new Dictionary<GameObject, Pool>(INITIAL_INSTANCE_POOL_SIZE);
         private static readonly Transform PoolParent;
 
         static PoolManager()
         {
             GameObject poolContainer = new GameObject("Pool Container");
-            UnityEngine.Object.DontDestroyOnLoad(poolContainer);
+            Object.DontDestroyOnLoad(poolContainer);
             PoolParent = poolContainer.transform;
         } 
         
-        public static Pool GetPool(GameObject prefab)
+        public static Pool GetPrefabPool(GameObject prefab)
         {
-            Type type = typeof(GameObject);
-            if (Pools.TryGetValue(type, out Pool pool))
+            if (PrefabPools.TryGetValue(prefab, out Pool pool))
                 return pool;
 
-            pool = new Pool(prefab, PoolParent);
-            Pools.Add(type, pool);
+            pool = new Pool(prefab, PoolParent, OnInstanceCreated);
+            PrefabPools.Add(prefab, pool);
             return pool;
         }
+
+        public static bool TryGetInstancePool(GameObject instance, out Pool pool) =>
+            InstancesPools.TryGetValue(instance, out pool);
+
+        private static void OnInstanceCreated(GameObject instance, Pool pool) => InstancesPools.Add(instance, pool);
     }
 }
